@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InApp Foundry — The Method</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#12151A;
+    --bg-0-rgb:18,21,26;
+    --bg-1:#181C23;
+    --panel:#1C212A;
+    --panel-2:#20262F;
+    --line:#2A303B;
+    --line-bright:#3A4250;
+    --ink-blue:#5B7FB0;
+    --ink-blue-dim:#3E5A80;
+    --ink-blue-rgb:91,127,176;
+    --forge:#E8863A;
+    --forge-bright:#FFA35C;
+    --forge-dim:#8A5A31;
+    --forge-rgb:232,134,58;
+    --on-accent:#14151A;
+    --text-0:#ECE8DF;
+    --text-1:#B7BAC2;
+    --text-2:#7B808C;
+    --radius:3px;
+    --wrap:1120px;
+    --display: "Space Grotesk", "IBM Plex Sans", sans-serif;
+    --body: "IBM Plex Sans", sans-serif;
+    --mono: "IBM Plex Mono", monospace;
+    color-scheme: dark;
+  }
+
+  html[data-theme="light"]{
+    --bg-0:#F6F3EC;
+    --bg-0-rgb:246,243,236;
+    --bg-1:#FFFFFF;
+    --panel:#FFFFFF;
+    --panel-2:#F1EDE3;
+    --line:#E1DACB;
+    --line-bright:#C9BFA8;
+    --ink-blue:#3D5A82;
+    --ink-blue-dim:#8098BA;
+    --ink-blue-rgb:61,90,130;
+    --forge:#B5641E;
+    --forge-bright:#96501A;
+    --forge-dim:#D8B78B;
+    --forge-rgb:181,100,30;
+    --on-accent:#FFFFFF;
+    --text-0:#1C1F26;
+    --text-1:#4B4F59;
+    --text-2:#5A5E68;
+    color-scheme: light;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(0deg, rgba(var(--ink-blue-rgb),0.045) 0px, rgba(var(--ink-blue-rgb),0.045) 1px, transparent 1px, transparent 64px),
+      repeating-linear-gradient(90deg, rgba(var(--ink-blue-rgb),0.045) 0px, rgba(var(--ink-blue-rgb),0.045) 1px, transparent 1px, transparent 64px),
+      var(--bg-0);
+    color:var(--text-1);
+    font-family:var(--body);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    transition: background-color .2s ease, color .2s ease;
+  }
+  body, body *{ transition: background-color .18s ease, border-color .18s ease, color .18s ease; }
+  @media (prefers-reduced-motion: reduce){ body, body *{ transition:none; } }
+
+  ::selection{ background:var(--forge); color:var(--on-accent); }
+
+  a{ color:var(--forge-bright); }
+  h1,h2,h3{ font-family:var(--display); color:var(--text-0); margin:0; }
+
+  :focus-visible{ outline:2px solid var(--forge-bright); outline-offset:3px; }
+
+  .wrap{ max-width:var(--wrap); margin:0 auto; padding:0 28px; }
+
+  /* ---------- NAV ---------- */
+  header.topnav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(var(--bg-0-rgb),0.88);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .topnav .wrap{ display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .brand{ display:flex; align-items:center; gap:10px; color:var(--text-0); text-decoration:none; }
+  .brand svg{ color:var(--forge); }
+  .brand-text{ display:flex; flex-direction:column; line-height:1.1; }
+  .brand-text .name{ font-family:var(--display); font-weight:700; font-size:15px; letter-spacing:0.06em; }
+  .brand-text .sub{ font-family:var(--mono); font-size:10px; color:var(--text-2); letter-spacing:0.04em; }
+  nav.links{ display:flex; gap:26px; }
+  nav.links a{
+    color:var(--text-1); text-decoration:none; font-size:13px; font-family:var(--mono);
+    letter-spacing:0.02em; position:relative; padding:4px 0;
+  }
+  nav.links a:hover{ color:var(--forge-bright); }
+  @media (max-width:900px){ nav.links{ display:none; } }
+
+  .nav-right{ display:flex; align-items:center; gap:22px; }
+  .theme-toggle{
+    display:flex; align-items:center; justify-content:center;
+    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    border:1px solid var(--line-bright); background:var(--panel);
+    color:var(--text-1); cursor:pointer; padding:0;
+  }
+  .theme-toggle:hover{ border-color:var(--forge-dim); color:var(--forge-bright); }
+  .theme-toggle .icon-moon{ display:none; }
+  html[data-theme="light"] .theme-toggle .icon-sun{ display:none; }
+  html[data-theme="light"] .theme-toggle .icon-moon{ display:block; }
+
+  /* ---------- HERO ---------- */
+  .hero{ padding:88px 0 60px; position:relative; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:11.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--forge-bright); border:1px solid var(--forge-dim); background:rgba(var(--forge-rgb),0.07);
+    padding:5px 12px; border-radius:20px; margin-bottom:26px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--forge-bright); }
+  h1.title{
+    font-size:clamp(38px, 6vw, 68px); font-weight:700; letter-spacing:-0.01em; line-height:1.02;
+    max-width:850px;
+  }
+  h1.title em{ font-style:normal; color:var(--forge-bright); }
+  .hero-sub{ max-width:660px; font-size:17.5px; color:var(--text-1); margin-top:22px; }
+  .hero-sub b{ color:var(--text-0); font-weight:500; }
+
+  .parts-row{ display:flex; gap:16px; margin-top:36px; flex-wrap:wrap; }
+  .part-card{ flex:1; min-width:230px; background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px 22px; text-decoration:none; display:block; transition:border-color .15s; }
+  a.part-card:hover{ border-color:var(--forge-dim); }
+  .part-label{ font-family:var(--mono); font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--forge-bright); }
+  .part-card h3{ font-family:var(--display); font-size:17px; font-weight:600; color:var(--text-0); margin:8px 0 0; }
+  .part-card p{ font-size:13.5px; color:var(--text-1); margin:8px 0 0; line-height:1.5; }
+  .parts-note{ font-family:var(--mono); font-size:12px; color:var(--text-2); margin-top:14px; }
+
+  .outcomes-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:800px){ .outcomes-grid{ grid-template-columns:1fr; } }
+  .outcome-card{ padding:22px 0; border-top:1px solid var(--line); }
+  .outcome-card h3{ font-family:var(--display); font-size:16px; font-weight:600; color:var(--text-0); display:flex; align-items:baseline; gap:10px; }
+  .outcome-card h3::before{ content:""; width:7px; height:7px; border-radius:50%; background:var(--forge); flex-shrink:0; transform:translateY(-1px); }
+  .outcome-card p{ font-size:14px; color:var(--text-1); margin:8px 0 0 17px; line-height:1.55; }
+
+  .idd-compare{ display:flex; align-items:stretch; gap:16px; margin-top:8px; }
+  @media (max-width:700px){ .idd-compare{ flex-direction:column; } }
+  .idd-card{ flex:1; padding:22px 24px; border-radius:var(--radius); border:1px solid var(--line); background:var(--panel); }
+  .idd-card.intent{ background:rgba(var(--forge-rgb),0.06); border-color:var(--forge-dim); }
+  .idd-label{ font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-2); }
+  .idd-card.intent .idd-label{ color:var(--forge-bright); }
+  .idd-quote{ font-family:var(--display); font-size:16px; font-style:italic; color:var(--text-0); margin:12px 0 0; line-height:1.45; }
+  .idd-arrow{ display:flex; align-items:center; justify-content:center; color:var(--text-2); font-size:20px; flex-shrink:0; }
+  @media (max-width:700px){ .idd-arrow{ transform:rotate(90deg); padding:2px 0; } }
+  .idd-note{ margin-top:20px; font-size:14.5px; color:var(--text-1); max-width:700px; }
+
+  .idd-principles{ margin-top:32px; padding-top:26px; border-top:1px solid var(--line); }
+  .idd-subhead{ font-family:var(--display); font-size:15px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:var(--forge-bright); margin-bottom:16px; }
+  .principle-row{ display:grid; grid-template-columns:230px 1fr; gap:18px; padding:14px 0; border-top:1px dashed var(--line); }
+  .principle-row:first-of-type{ border-top:none; }
+  .principle-name{ font-family:var(--display); font-size:14.5px; font-weight:600; color:var(--text-0); }
+  .principle-desc{ font-size:14px; color:var(--text-1); line-height:1.5; }
+  @media (max-width:700px){ .principle-row{ grid-template-columns:1fr; gap:4px; } }
+
+  .idd-ai{ margin-top:32px; padding-top:26px; border-top:1px solid var(--line); }
+  .idd-ai-intent{ font-family:var(--display); font-size:15.5px; font-style:italic; color:var(--text-0); background:var(--panel); border-left:2px solid var(--forge); padding:14px 18px; border-radius:0 var(--radius) var(--radius) 0; }
+  .idd-ai-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .idd-ai-chip{ font-family:var(--mono); font-size:12px; color:var(--ink-blue); background:rgba(var(--ink-blue-rgb),0.08); border:1px solid var(--ink-blue-dim); border-radius:20px; padding:5px 12px; }
+
+  .shift-block{ margin-top:28px; padding-top:24px; border-top:1px solid var(--line); }
+  .shift-label{ font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-2); margin-bottom:10px; }
+  .shift-row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:16px; }
+  .shift-chip{ font-family:var(--mono); font-size:12.5px; color:var(--text-1); border:1px solid var(--line-bright); border-radius:20px; padding:5px 12px; white-space:nowrap; }
+  .shift-chip.tool{ color:var(--forge-bright); border-color:var(--forge-dim); background:rgba(var(--forge-rgb),0.08); }
+  .shift-arrow{ color:var(--text-2); font-size:13px; }
+
+  /* pour chain */
+  .chain-wrap{ margin-top:64px; }
+  .chain-label{ font-family:var(--mono); font-size:11px; color:var(--text-2); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:18px; }
+  .chain{
+    position:relative; display:flex; align-items:stretch; gap:0; padding:6px 0 26px;
+  }
+  .chain::before{
+    content:""; position:absolute; left:22px; right:22px; top:34px; height:2px;
+    background:linear-gradient(90deg, var(--forge) 0%, var(--forge) 15%, var(--ink-blue) 100%);
+    background-size:200% 100%;
+    opacity:0.55;
+    animation:pour 5s linear infinite;
+  }
+  @keyframes pour{ 0%{background-position:0% 0;} 100%{background-position:-200% 0;} }
+  .node{
+    position:relative; z-index:2; flex:1; min-width:0; background:none; border:none; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:10px; padding:0 4px 0; color:var(--text-1);
+    font-family:var(--body);
+  }
+  .node .pip{
+    width:44px; height:44px; border-radius:50%; background:var(--bg-1); border:2px solid var(--line-bright);
+    display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:13px;
+    color:var(--text-1); transition:border-color .18s, color .18s, background .18s, transform .18s;
+  }
+  .node .lbl{ font-size:11.5px; text-align:center; color:var(--text-2); line-height:1.25; max-width:110px; transition:color .18s; }
+  .node .lbl .range{ display:block; font-family:var(--mono); font-size:10px; color:var(--text-2); margin-top:2px; }
+  .node:hover .pip{ border-color:var(--forge-bright); color:var(--forge-bright); }
+  .node.active .pip{ border-color:var(--forge-bright); background:var(--forge); color:var(--on-accent); transform:scale(1.08); }
+  .node.active .lbl{ color:var(--text-0); }
+
+  @media (max-width:860px){
+    .chain{ flex-direction:column; gap:22px; padding-left:6px; }
+    .chain::before{ left:24px; top:8px; bottom:8px; right:auto; width:2px; height:auto; background:linear-gradient(180deg, var(--forge) 0%, var(--forge) 15%, var(--ink-blue) 100%); background-size:100% 200%; animation:pourv 5s linear infinite; }
+    @keyframes pourv{ 0%{background-position:0 0%;} 100%{background-position:0 -200%;} }
+    .node{ flex-direction:row; justify-content:flex-start; text-align:left; }
+    .node .lbl{ text-align:left; max-width:none; }
+  }
+
+  .stat-row{ display:flex; flex-wrap:wrap; gap:34px; margin-top:8px; padding-top:26px; border-top:1px solid var(--line); }
+  .stat{ display:flex; flex-direction:column; gap:2px; }
+  .stat .n{ font-family:var(--display); font-size:22px; font-weight:700; color:var(--text-0); }
+  .stat .l{ font-family:var(--mono); font-size:11px; color:var(--text-2); text-transform:uppercase; letter-spacing:0.08em; }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{ padding:84px 0; border-top:1px solid var(--line); }
+  .sec-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:14px; flex-wrap:wrap; }
+  .sec-index{ font-family:var(--mono); font-size:13px; color:var(--forge-bright); }
+  .sec-eyebrow-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
+  .sec-eyebrow{ font-family:var(--mono); font-size:11.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-blue); }
+  .step-tag{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:0.04em; color:var(--text-2);
+    border:1px solid var(--line-bright); border-radius:20px; padding:3px 10px; white-space:nowrap;
+  }
+  h2.sec-title{ font-size:clamp(26px,3.4vw,36px); font-weight:600; }
+  .sec-intro{ max-width:700px; margin-top:14px; font-size:15.5px; color:var(--text-1); }
+  .sec-body{ margin-top:44px; }
+
+  /* ---------- METHOD (stages + steps) ---------- */
+  .cast-shell{ display:grid; grid-template-columns:34px 1fr; gap:22px; }
+  @media (max-width:700px){ .cast-shell{ grid-template-columns:1fr; } .rail{ display:none; } }
+  .rail{ display:flex; flex-direction:column; align-items:center; gap:0; padding-top:6px; }
+  .rail-dot{
+    width:12px; height:12px; border-radius:50%; border:2px solid var(--line-bright); background:var(--bg-1);
+    cursor:pointer; flex-shrink:0; transition:border-color .15s, background .15s;
+  }
+  .rail-dot.active{ border-color:var(--forge); background:var(--forge); }
+  .rail-seg{ width:2px; flex:1; background:var(--line); min-height:34px; }
+
+  .accordion{ display:flex; flex-direction:column; }
+  .phase{ border-top:1px solid var(--line); scroll-margin-top:90px; }
+  .phase:last-child{ border-bottom:1px solid var(--line); }
+  .phase-head{
+    width:100%; background:none; border:none; cursor:pointer; text-align:left;
+    display:flex; align-items:center; gap:18px; padding:22px 0; color:inherit;
+  }
+  .phase-code{ font-family:var(--mono); font-size:12px; color:var(--forge-bright); border:1px solid var(--forge-dim); border-radius:20px; padding:4px 10px; flex-shrink:0; }
+  .phase-title-wrap{ flex:1; min-width:0; }
+  .phase-name{ font-family:var(--display); font-size:18px; font-weight:600; color:var(--text-0); }
+  .phase-name .rng{ font-family:var(--mono); font-size:11.5px; color:var(--ink-blue); font-weight:400; margin-left:10px; }
+  .phase-purpose{ font-size:13.5px; color:var(--text-2); margin-top:3px; }
+  .phase-chev{ font-family:var(--mono); color:var(--text-2); transition:transform .2s; flex-shrink:0; }
+  .phase.open .phase-chev{ transform:rotate(45deg); color:var(--forge-bright); }
+  .phase-body{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .25s ease; }
+  .phase.open .phase-body{ grid-template-rows:1fr; }
+  .phase-body-inner{ overflow:hidden; }
+  .phase-body-content{ padding:0 0 30px 0; }
+
+  .step-list{ display:flex; flex-direction:column; }
+  .step-row{ display:grid; grid-template-columns:30px 1fr auto; align-items:start; gap:16px; padding:12px 0; border-top:1px dashed var(--line); }
+  .step-row:first-child{ border-top:1px dashed var(--line); }
+  .step-num{ font-family:var(--mono); font-size:12px; color:var(--text-2); padding-top:1px; }
+  .step-text{ font-size:14px; color:var(--text-1); }
+  .step-tool{ font-family:var(--mono); font-size:10px; padding:3px 9px; border-radius:20px; white-space:nowrap; align-self:start; text-transform:uppercase; letter-spacing:0.03em; }
+  .step-tool.claude{ color:var(--forge-bright); border:1px solid var(--forge-dim); background:rgba(var(--forge-rgb),0.08); }
+  .step-tool.design{ color:var(--forge-bright); border:1px solid var(--forge-dim); background:rgba(var(--forge-rgb),0.08); }
+  .step-tool.cursor{ color:var(--ink-blue); border:1px solid var(--ink-blue-dim); background:rgba(var(--ink-blue-rgb),0.08); }
+  .step-tool.manual{ color:var(--text-2); border:1px solid var(--line-bright); background:transparent; }
+  @media (max-width:640px){
+    .step-row{ grid-template-columns:24px 1fr; }
+    .step-tool{ grid-column:2; margin-top:6px; justify-self:start; }
+  }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; }
+  .legend .step-tool{ position:relative; }
+
+  /* ---------- LAYERS (The Mold) ---------- */
+  .layers{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  @media (max-width:900px){ .layers{ grid-template-columns:1fr; } }
+  .layer-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:26px 24px; position:relative; overflow:hidden;
+  }
+  .layer-card::before{ content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--ink-blue-dim); }
+  .layer-card[data-open="true"]::before{ background:var(--forge); }
+  .layer-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .layer-num{ font-family:var(--mono); font-size:12px; color:var(--text-2); }
+  .layer-tag{ font-family:var(--mono); font-size:11px; color:var(--forge-bright); border:1px solid var(--forge-dim); border-radius:20px; padding:3px 10px; }
+  .layer-name{ font-family:var(--display); font-size:19px; font-weight:600; color:var(--text-0); margin-top:14px; }
+  .layer-what{ margin-top:10px; font-size:14px; color:var(--text-1); }
+  .layer-toggle{
+    margin-top:18px; background:none; border:none; color:var(--ink-blue); font-family:var(--mono); font-size:12px;
+    cursor:pointer; display:flex; align-items:center; gap:6px; padding:0;
+  }
+  .layer-toggle:hover{ color:var(--forge-bright); }
+  .layer-toggle .chev{ transition:transform .18s; }
+  .layer-card[data-open="true"] .layer-toggle .chev{ transform:rotate(180deg); }
+  .layer-detail{
+    display:grid; grid-template-rows:0fr; transition:grid-template-rows .25s ease; margin-top:4px;
+  }
+  .layer-card[data-open="true"] .layer-detail{ grid-template-rows:1fr; }
+  .layer-detail-inner{ overflow:hidden; }
+  .layer-detail dl{ margin:16px 0 0; padding-top:16px; border-top:1px dashed var(--line); display:grid; gap:10px; }
+  .layer-detail dt{ font-family:var(--mono); font-size:10.5px; color:var(--text-2); text-transform:uppercase; letter-spacing:0.08em; }
+  .layer-detail dd{ margin:2px 0 0; font-size:13.5px; color:var(--text-1); }
+  .layer-detail code{ font-family:var(--mono); font-size:13px; color:var(--forge-bright); background:rgba(var(--forge-rgb),0.08); padding:1px 6px; border-radius:3px; }
+
+  .support-note{ margin-top:20px; font-size:13px; color:var(--text-2); font-family:var(--mono); }
+  .support-note code{ color:var(--ink-blue); }
+
+  /* ---------- LAWS ---------- */
+  .laws{ display:flex; flex-direction:column; }
+  .law{
+    display:grid; grid-template-columns:70px 1fr; gap:22px; padding:26px 0; border-top:1px solid var(--line);
+    transition:background .15s;
+  }
+  .law:last-child{ border-bottom:1px solid var(--line); }
+  .law:hover{ background:rgba(var(--forge-rgb),0.03); }
+  .law-num{ font-family:var(--display); font-size:30px; font-weight:700; color:var(--line-bright); transition:color .15s; }
+  .law:hover .law-num{ color:var(--forge); }
+  .law-title{ font-family:var(--display); font-size:17px; font-weight:600; color:var(--text-0); }
+  .law-body{ margin-top:6px; font-size:14.5px; color:var(--text-1); max-width:620px; }
+
+  /* ---------- SEED ANATOMY ---------- */
+  .seed-grid{ display:grid; grid-template-columns:1fr 1fr; gap:40px; }
+  @media (max-width:860px){ .seed-grid{ grid-template-columns:1fr; } }
+  .seed-col h3{ font-family:var(--display); font-size:15px; letter-spacing:0.04em; text-transform:uppercase; color:var(--forge-bright); margin-bottom:18px; }
+  .file-tree{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px 22px; }
+  .file-row{ display:flex; gap:14px; padding:11px 0; border-bottom:1px dashed var(--line); }
+  .file-row:last-child{ border-bottom:none; }
+  .file-name{ font-family:var(--mono); font-size:13px; color:var(--text-0); white-space:nowrap; }
+  .file-desc{ font-size:13px; color:var(--text-2); }
+
+  .lifecycle{ display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+  .lc-step{ display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11.5px; color:var(--text-1); background:var(--panel-2); border:1px solid var(--line); border-radius:20px; padding:6px 12px; }
+  .lc-step b{ color:var(--forge-bright); font-weight:500; }
+
+  .field-list{ display:flex; flex-direction:column; gap:0; }
+  .field-row{ display:grid; grid-template-columns:150px 1fr; gap:16px; padding:13px 0; border-bottom:1px dashed var(--line); }
+  .field-row:first-child{ border-top:1px dashed var(--line); }
+  .field-name{ font-family:var(--mono); font-size:12.5px; color:var(--forge-bright); }
+  .field-desc{ font-size:13.5px; color:var(--text-1); }
+
+  .seed-note{ margin-top:22px; padding:16px 18px; background:rgba(var(--ink-blue-rgb),0.06); border-left:2px solid var(--ink-blue); font-size:13.5px; color:var(--text-1); }
+
+  /* ---------- REFERENCE / TABS ---------- */
+  .tabs{ display:flex; gap:8px; margin-bottom:26px; }
+  .tab-btn{
+    font-family:var(--mono); font-size:12.5px; color:var(--text-2); background:var(--panel);
+    border:1px solid var(--line); border-radius:20px; padding:8px 16px; cursor:pointer; transition:all .15s;
+  }
+  .tab-btn.active{ color:var(--on-accent); background:var(--forge-bright); border-color:var(--forge-bright); }
+  .tab-btn:not(.active):hover{ border-color:var(--line-bright); color:var(--text-1); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+
+  .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -4px; padding:0 4px; }
+  table.ref-table{ width:100%; min-width:560px; border-collapse:collapse; }
+  table.ref-table th{
+    text-align:left; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--text-2); padding:0 14px 12px 0; border-bottom:1px solid var(--line-bright);
+  }
+  table.ref-table td{ padding:13px 14px 13px 0; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:top; }
+  table.ref-table tr td:first-child{ color:var(--text-0); font-weight:500; white-space:nowrap; }
+  table.ref-table tr td:nth-child(2){ color:var(--text-1); }
+  table.ref-table tr td:nth-child(3){ color:var(--ink-blue); font-family:var(--mono); font-size:12.5px; }
+  table.ref-table tr:hover{ background:rgba(var(--forge-rgb),0.03); }
+
+  .tree{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px 24px; font-family:var(--mono); font-size:13px; }
+  .tree details{ margin:2px 0; }
+  .tree summary{ cursor:pointer; color:var(--text-0); padding:5px 0; list-style:none; }
+  .tree summary::-webkit-details-marker{ display:none; }
+  .tree summary::before{ content:"\25B8"; display:inline-block; margin-right:8px; color:var(--forge-bright); transition:transform .15s; }
+  .tree details[open] > summary::before{ transform:rotate(90deg); }
+  .tree .indent{ margin-left:22px; border-left:1px dashed var(--line); padding-left:16px; }
+  .tree .leaf{ padding:5px 0; color:var(--text-1); }
+  .tree .leaf .comment{ color:var(--text-2); }
+  .tree .file{ color:var(--ink-blue); }
+
+  /* ---------- FOOTER ---------- */
+  footer{ padding:50px 0 70px; border-top:1px solid var(--line); }
+  .foot-grid{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:26px; align-items:flex-start; }
+  .foot-left{ display:flex; align-items:center; gap:10px; color:var(--text-2); }
+  .foot-left svg{ color:var(--forge-dim); }
+  .foot-meta{ font-family:var(--mono); font-size:12px; color:var(--text-2); display:flex; flex-direction:column; gap:6px; text-align:right; }
+  .foot-meta code{ color:var(--ink-blue); }
+  @media (max-width:640px){ .foot-meta{ text-align:left; } }
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <svg width="26" height="26" viewBox="0 0 28 28" fill="none"><path d="M4 20 L4 10 L10 4 L18 4 L24 10 L24 20 L18 26 L10 26 Z" stroke="currentColor" stroke-width="1.6"/><line x1="4" y1="14" x2="24" y2="14" stroke="currentColor" stroke-width="1.6"/></svg>
+      <span class="brand-text"><span class="name">INAPP FOUNDRY</span><span class="sub">INTENT-DRIVEN DEVELOPMENT</span></span>
+    </a>
+    <nav class="links">
+      <a href="#idd">Intent-Driven Dev</a>
+      <a href="#outcomes">Why It Matters</a>
+      <a href="#method">The Method</a>
+      <a href="#system">Spec System</a>
+      <a href="#laws">Foundry Laws</a>
+      <a href="#seed">SEED Anatomy</a>
+      <a href="#reference">Reference</a>
+    </nav>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light and dark mode" title="Toggle light / dark mode">
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" style="border-top:none; padding-top:80px;">
+    <div class="wrap">
+      <div class="eyebrow"><span class="dot"></span>InApp Foundry</div>
+      <h1 class="title">Understand it.<br>Then build it <em>fast</em>.</h1>
+      <p class="hero-sub">InApp Foundry is built on Intent-Driven Development: capturing what the business actually needs, not just the feature as stated — then turning that intent into a working solution, fast. The Method and the Skills that power it are how it is done - a fixed sequence of steps, a human checkpoint at every manual one, and documentation at every stage.</p>
+
+      <div class="parts-row">
+        <a href="#idd" class="part-card">
+          <span class="part-label">Part 1</span>
+          <h3>The Method</h3>
+          <p>IDD - The concept Foundry uses to build solutions, forming its core.<br/>SDD - Spec, build, review, and handover, six stages start to finish.</p>
+        </a>
+        <div class="part-card">
+          <span class="part-label">Part 2</span>
+          <h3>Skills</h3>
+          <p>The reusable Cursor Project Skills loaded at Step 2 — the agentic coding practice that makes every later step possible.</p>
+        </div>
+      </div>
+      <div class="parts-note">Method and Skills are two parts of Foundry — this page documents the Method in full.</div>
+
+      <div class="chain-wrap">
+        <div class="chain-label">Six stages — click one to open it below</div>
+        <div class="chain" id="heroChain"></div>
+      </div>
+
+      <div class="stat-row" id="statRow"></div>
+    </div>
+  </section>
+
+  <section id="idd">
+    <div class="wrap">
+      <div class="sec-eyebrow-row"><span class="sec-eyebrow">The Core Workflow</span></div>
+      <div class="sec-head"><h2 class="sec-title">Intent-Driven Development</h2></div>
+      <p class="sec-intro">Intent-Driven Development (IDD) is Foundry's core workflow — the focus is on capturing and implementing what the business actually needs, not just coding the feature as stated. SDD (the Method that follows) is the tool: it turns captured intent into specs, contracts, and audits, so the build stays provably tied to the outcome, not just the request.</p>
+      <div class="sec-body">
+        <div class="idd-compare">
+          <div class="idd-card">
+            <span class="idd-label">Traditional requirement</span>
+            <p class="idd-quote">"Build an approval screen with Approve/Reject buttons."</p>
+          </div>
+          <div class="idd-arrow">→</div>
+          <div class="idd-card intent">
+            <span class="idd-label">Intent-driven requirement</span>
+            <p class="idd-quote">"Enable managers to approve employee requests within 2 minutes, from any device."</p>
+          </div>
+        </div>
+        <p class="idd-note">The second statement drives better decisions — about UI, automation, notifications, and mobile support — because it states the outcome the business needs, not just the screen to build.</p>
+
+        <div class="shift-block">
+          <div class="shift-label">SDD on its own</div>
+          <div class="shift-row">
+            <span class="shift-chip">Requirements</span><span class="shift-arrow">→</span>
+            <span class="shift-chip">Design</span><span class="shift-arrow">→</span>
+            <span class="shift-chip">Code</span><span class="shift-arrow">→</span>
+            <span class="shift-chip">Test</span>
+          </div>
+          <div class="shift-label">Foundry's IDD workflow</div>
+          <div class="shift-row">
+            <span class="shift-chip">Intent</span><span class="shift-arrow">→</span>
+            <span class="shift-chip">Outcome</span><span class="shift-arrow">→</span>
+            <span class="shift-chip">Design Options</span><span class="shift-arrow">→</span>
+            <span class="shift-chip tool">Code &amp; Test — SDD</span><span class="shift-arrow">→</span>
+            <span class="shift-chip">Validate Outcome</span>
+          </div>
+        </div>
+        <p class="idd-note">SDD supplies the design, code, and test discipline once intent and outcome are set — it's the tool inside Foundry's workflow, not a competing one.</p>
+
+        <div class="idd-principles">
+          <div class="idd-subhead">How Foundry Practices IDD</div>
+          <div class="principle-row">
+            <span class="principle-name">Outcome over output</span>
+            <span class="principle-desc">Success is measured by whether the user achieved the outcome — not by whether a checklist of screen elements exists and technically works.</span>
+          </div>
+          <div class="principle-row">
+            <span class="principle-name">"Why" before "what"</span>
+            <span class="principle-desc">Every requirement starts as a question about the business need. The screen, the workflow, the automation — those are answers, decided afterward.</span>
+          </div>
+          <div class="principle-row">
+            <span class="principle-name">Intent can evolve — the build follows</span>
+            <span class="principle-desc">Requirements aren't frozen before work starts. As the intent becomes clearer through Steps 1–11, the spec sharpens with it.</span>
+          </div>
+          <div class="principle-row">
+            <span class="principle-name">Built for AI</span>
+            <span class="principle-desc">Intent translates naturally into user stories, workflows, and code. That's exactly what makes fast turnaround possible — AI does the translating.</span>
+          </div>
+          <div class="principle-row">
+            <span class="principle-name">The real risk is misunderstanding, not overbuilding</span>
+            <span class="principle-desc">Building the wrong thing perfectly is a bigger failure than a rough edge on the right thing. Foundry optimizes against the first risk.</span>
+          </div>
+        </div>
+
+        <div class="idd-ai">
+          <div class="idd-subhead">Intent, Translated by AI</div>
+          <p class="sec-intro" style="margin-top:0;">A single intent statement is enough for an AI-enabled IDD process to generate the pieces a traditional spec would have had to enumerate by hand:</p>
+          <p class="idd-ai-intent">"I want managers to approve leave requests quickly from mobile devices."</p>
+          <div class="idd-ai-chips">
+            <span class="idd-ai-chip">Mobile-first UI</span>
+            <span class="idd-ai-chip">Approval workflow</span>
+            <span class="idd-ai-chip">Notifications</span>
+            <span class="idd-ai-chip">Security rules</span>
+            <span class="idd-ai-chip">APIs</span>
+            <span class="idd-ai-chip">Test cases</span>
+          </div>
+          <p class="idd-note">No detailed specification comes first — SDD forms once the intent is captured, not before. That ordering is what "IDD is the workflow, SDD is the tool" means in practice.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="outcomes">
+    <div class="wrap">
+      <div class="sec-eyebrow-row"><span class="sec-eyebrow">Why It Matters</span></div>
+      <div class="sec-head"><h2 class="sec-title">Four outcomes, not twenty-two steps</h2></div>
+      <p class="sec-intro">Foundry exists to produce one thing: a working business solution the client can trust, built fast. The Method below is how. These are why it works.</p>
+      <div class="sec-body outcomes-grid">
+        <div class="outcome-card">
+          <h3>Speed with a floor under it</h3>
+          <p>Turnaround is short because the path is already decided, not because steps get skipped. Nothing in the sequence below is improvised mid-engagement.</p>
+        </div>
+        <div class="outcome-card">
+          <h3>Built against the real intent</h3>
+          <p>Gaps are closed and the outcome is validated before a line of code is written, so the team builds what the business actually needs — not just what was asked for.</p>
+        </div>
+        <div class="outcome-card">
+          <h3>Auditable, not just demoed</h3>
+          <p>Every build is checked against its own source of truth, reviewed for intent, and cleared against OWASP before it ships. "Done" means something specific.</p>
+        </div>
+        <div class="outcome-card">
+          <h3>A handover the client can own</h3>
+          <p>Documentation, architecture rationale, and a reusable scaffold ship with the code — so the client isn't locked into the team that built it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="method">
+    <div class="wrap">
+      <div class="sec-eyebrow-row"><span class="sec-eyebrow">01 — The Method</span></div>
+      <div class="sec-head"><h2 class="sec-title">Six stages, start to finish</h2></div>
+      <p class="sec-intro" id="flowLine"></p>
+      <p class="sec-intro">SDD is the tool; every step below either captures intent (Steps 1, 9), encodes it into a spec (Steps 10, 11, 13–15), or validates the build against it (Steps 19–21) — IDD is what it's checking for throughout.</p>
+      <div class="sec-body cast-shell">
+        <div class="rail" id="castRail"></div>
+        <div class="accordion" id="castAccordion"></div>
+      </div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </section>
+
+  <section id="system">
+    <div class="wrap">
+      <div class="sec-eyebrow-row"><span class="sec-eyebrow">02 — The Spec System</span><span class="step-tag">Built in steps 10, 11, 13–15</span></div>
+      <div class="sec-head"><h2 class="sec-title">The mould, in three layers</h2></div>
+      <p class="sec-intro">Specs aren't a single document — they stack. Each layer has one job, is owned by a different reader, and none of them replaces the others. Behavior disputes are always settled by Layer 2.</p>
+      <div class="sec-body">
+        <div class="layers" id="layerGrid"></div>
+        <p class="support-note">Supporting inputs, not specs: <code>BRD_*.md</code> · gaps JSON · <code>feedback-mockup/</code> · <code>Docs/ARCHITECTURE.md</code></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="laws">
+    <div class="wrap">
+      <div class="sec-eyebrow-row"><span class="sec-eyebrow">03 — Foundry Laws</span><span class="step-tag">Applies throughout</span></div>
+      <div class="sec-head"><h2 class="sec-title">Five rules, non‑negotiable</h2></div>
+      <p class="sec-intro">Every step, every agent session, every review runs against these five. They don't flex for deadlines.</p>
+      <div class="sec-body laws" id="lawsList"></div>
+    </div>
+  </section>
+
+  <section id="seed">
+    <div class="wrap">
+      <div class="sec-eyebrow-row"><span class="sec-eyebrow">04 — Anatomy of a SEED</span><span class="step-tag">Steps 16–18</span></div>
+      <div class="sec-head"><h2 class="sec-title">One capability, one PR, one contract</h2></div>
+      <p class="sec-intro">Steps 16–18 in detail: a SEED unit is not a task label — it's the execution contract for a single build increment, backed by a change folder and reviewed before and after the code is written.</p>
+      <div class="sec-body seed-grid">
+        <div class="seed-col">
+          <h3>Change folder</h3>
+          <div class="file-tree" id="fileTree"></div>
+          <div class="lifecycle" id="lifecycle"></div>
+        </div>
+        <div class="seed-col">
+          <h3>SEED block — required fields</h3>
+          <div class="field-list" id="fieldList"></div>
+          <p class="seed-note">Normal SEEDs fit one PR, one capability boundary. <code style="color:var(--forge-bright); font-family:var(--mono);">seed-00</code> (bootstrap) is the one exception. Never build a SEED before its dependencies are green — sort conflicts like port numbers (step 18) before batching further work.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="reference">
+    <div class="wrap">
+      <div class="sec-eyebrow-row"><span class="sec-eyebrow">05 — Field Reference</span><span class="step-tag">Supporting detail</span></div>
+      <div class="sec-head"><h2 class="sec-title">Read this, write that</h2></div>
+      <p class="sec-intro">The file-level detail behind the method above — a field guide for any moment in the build, and the final shape of a delivered project.</p>
+      <div class="sec-body">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="tab-moments">Read / write by moment</button>
+          <button class="tab-btn" data-tab="tab-structure">Final project structure</button>
+        </div>
+
+        <div class="tab-panel active" id="tab-moments">
+          <div class="table-scroll">
+          <table class="ref-table">
+            <thead><tr><th>Moment</th><th>Read</th><th>Write / update</th></tr></thead>
+            <tbody id="refTableBody"></tbody>
+          </table>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-structure">
+          <div class="tree" id="structureTree"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div class="foot-left">
+      <svg width="20" height="20" viewBox="0 0 28 28" fill="none"><path d="M4 20 L4 10 L10 4 L18 4 L24 10 L24 20 L18 26 L10 26 Z" stroke="currentColor" stroke-width="1.6"/><line x1="4" y1="14" x2="24" y2="14" stroke="currentColor" stroke-width="1.6"/></svg>
+      <span>InApp Foundry</span>
+    </div>
+    <div class="foot-meta">
+      <span>Pipeline: <code>BRD → handover</code></span>
+      <span>Approach: <code>IDD</code></span>
+      <span>Master skill: <code>spec-driven-development</code></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // ---------- theme toggle ----------
+  const themeToggle = document.getElementById("themeToggle");
+  themeToggle.addEventListener("click", () => {
+    const isLight = document.documentElement.getAttribute("data-theme") === "light";
+    document.documentElement.setAttribute("data-theme", isLight ? "dark" : "light");
+  });
+
+  // ---------- source of truth: Method.txt, grouped into six stages ----------
+  const stages = [
+    { code:"01", name:"Setup & Plan", rangeLabel:"Steps 1–4",
+      purpose:"Draft the BRD, load the skills, confirm fit, and plan the run.",
+      steps:[
+        { n:1, text:"Claude drafts the BRD, giving the engagement a shared, written starting brief.", tool:"claude", label:"Claude" },
+        { n:2, text:"The SDD skill files are copied into the project folder, putting the method in place before work begins.", tool:"manual", label:"Manual" },
+        { n:3, text:"Cursor checks the BRD against the installed skills, confirming the solution is buildable before work starts.", tool:"cursor", label:"Cursor" },
+        { n:4, text:"Cursor lays out the build plan, setting the stage order the rest of the engagement follows.", tool:"cursor", label:"Cursor" }
+      ] },
+    { code:"02", name:"UI/UX Mockups", rangeLabel:"Steps 5–7",
+      purpose:"Turn the plan into a UI prompt, generate screens, and stage them for the build.",
+      steps:[
+        { n:5, text:"Cursor turns the plan into a UI prompt, handing the design tool a brief it can act on.", tool:"cursor", label:"Cursor" },
+        { n:6, text:"The design tool renders the UI/UX screens, producing either a click-through demo or implementation-ready mockups.", tool:"design", label:"Design Tool" },
+        { n:7, text:"The finished mockups land in the project folder, becoming the visual reference for every later step.", tool:"manual", label:"Manual" }
+      ] },
+    { code:"03", name:"Requirements & Spec Baseline", rangeLabel:"Steps 8–11",
+      purpose:"Run the SDD process itself — gaps, FSD, and the spec baseline.",
+      steps:[
+        { n:8, text:"Cursor kicks off the SDD process, switching the engagement from planning into spec-driven build mode.", tool:"cursor", label:"Cursor" },
+        { n:9, text:"Open questions from the gaps questionnaire get answered, closing the ambiguity before the FSD is written.", tool:"manual", label:"Manual" },
+        { n:10, text:"Cursor writes the FSD and requests a scaffold, turning the brief into a structured spec with a starting codebase.", tool:"cursor", label:"Cursor" },
+        { n:11, text:"Cursor builds and validates the OpenSpec baseline, giving every domain a checked, testable behavior contract.", tool:"cursor", label:"Cursor" }
+      ] },
+    { code:"04", name:"Architecture", rangeLabel:"Steps 12–15",
+      purpose:"Verify the FSD, then settle the demo and production-equivalent architecture.",
+      steps:[
+        { n:12, text:"With the FSD verified, the team prompts for the next build steps and sets architecture constraints — e.g. use SQLite.", tool:"manual", label:"Manual" },
+        { n:13, text:"Cursor returns the ADRs and tech stack document, locking in the architecture for the demo-ready build.", tool:"cursor", label:"Cursor" },
+        { n:14, text:"A production-equivalent architecture is requested, giving the client a credible path beyond the demo stack.", tool:"manual", label:"Manual" },
+        { n:15, text:"Cursor revises the architecture wherever it falls short, keeping the design current before SEED planning.", tool:"cursor", label:"Cursor" }
+      ] },
+    { code:"05", name:"SEED Planning & Build", rangeLabel:"Steps 16–18",
+      purpose:"Plan every SEED against the demo stack, review it, then build.",
+      steps:[
+        { n:16, text:"Cursor plans every SEED across all phases against the demo stack, turning the roadmap into buildable units.", tool:"cursor", label:"Cursor" },
+        { n:17, text:"The SEED plan gets a manual review before the build starts, catching sequencing issues while they're cheap to fix.", tool:"manual", label:"Manual" },
+        { n:18, text:"Environment conflicts like clashing port numbers get resolved, keeping the build unblocked.", tool:"cursor", label:"Cursor" }
+      ] },
+    { code:"06", name:"Validation & Handover", rangeLabel:"Steps 19–22",
+      purpose:"Audit against the source of truth, review intent, clear OWASP, then hand over.",
+      steps:[
+        { n:19, text:"Cursor audits the build against the FSD, specs, and OpenAPI, surfacing any gap before the client sees it.", tool:"cursor", label:"Cursor" },
+        { n:20, text:"Each SEED's intent is reviewed and its test cases formally validated, confirming the build did what it was meant to.", tool:"manual", label:"Manual" },
+        { n:21, text:"The build clears an OWASP checkpoint, giving the handover a documented security baseline.", tool:"cursor", label:"Cursor" },
+        { n:22, text:"Cursor writes the handover and scaffolding documents, packaging the engagement for a clean client handoff.", tool:"cursor", label:"Cursor" }
+      ] }
+  ];
+
+  const TOOL_COUNTS = { claude:0, design:0, cursor:0, manual:0 };
+  let totalSteps = 0;
+  stages.forEach(s => s.steps.forEach(st => { TOOL_COUNTS[st.tool]++; totalSteps++; }));
+
+  const layers = [
+    { n:"01", tag:"FSD", name:"Narrative Product Spec",
+      what:"Epics, user stories, and Given/When/Then acceptance criteria — the plain-language contract everyone can read.",
+      location:"Docs/FSD_&lt;Project&gt;.md", created:"Step 10 — after the gaps questionnaire is answered", reader:"Humans — planning & handover" },
+    { n:"02", tag:"OpenSpec", name:"Behavior Contract",
+      what:"MUST / SHALL requirements with GIVEN–WHEN–THEN scenarios, grouped by domain.",
+      location:"openspec/specs/&lt;domain&gt;/spec.md", created:"Step 11 — built and validated once the FSD is set", reader:"Agent + developers — source of truth for behavior" },
+    { n:"03", tag:"OpenAPI", name:"HTTP Contract",
+      what:"Paths, schemas, auth, and phase tags (x-phase) for every operation.",
+      location:"Docs/openapi.yaml", created:"Steps 13–15 — during architecture, updated before API code", reader:"Front end, back end, contract tests" }
+  ];
+
+  const laws = [
+    { title:"No coding without a written spec slice", body:"At minimum: an approved SEED block, a linked change folder, and the relevant domain specs." },
+    { title:"OpenAPI before API code", body:"If the contract has to change, edit Docs/openapi.yaml first — implementation follows." },
+    { title:"Behavior disputes → OpenSpec wins", body:"openspec/specs/**/spec.md outranks chat memory or an implied requirement, every time." },
+    { title:"SEED before code, architecture before SEED", body:"Don't plan or build SEED units until stack, OpenAPI skeleton, and platform-fit are decided." },
+    { title:"Pre-phase honesty", body:"A later-phase feature gets a spec, and a 501 or hidden UI — never faked data pretending it shipped." }
+  ];
+
+  const files = [
+    { name:"proposal.md", desc:"Why, what, in / out of scope, links back to the FSD & OpenAPI." },
+    { name:"design.md", desc:"Technical approach, constraints, patterns, risks, rollback plan." },
+    { name:"tasks.md", desc:"Checklist the implementer ticks off — maps directly to PR work." },
+    { name:"specs/&lt;domain&gt;/spec.md", desc:"Optional deltas — only if this SEED adds behavior not already in baseline." }
+  ];
+
+  const lifecycle = ["Plan","Review","Build","Tasks","Validate","Review","Archive"];
+
+  const fields = [
+    ["SEED-ID","e.g. seed-04-forms"],
+    ["Goal","One line"],
+    ["Scope","In / out"],
+    ["Constraints","Perf, security, observability, backward-compat, cost — or “N/A — rationale”"],
+    ["Acceptance criteria","Given / When / Then"],
+    ["Evidence required","Tests, commands, screenshots"],
+    ["Risks & rollback","What breaks, and how to undo it"],
+    ["Spec link","Change folder + relevant openspec/specs/&lt;domain&gt;/"]
+  ];
+
+  const refRows = [
+    ["Start project","BRD, skills","Plan in chat — steps 1–4"],
+    ["Before gaps","BRD + UI_REFERENCE.md","UI mockups — steps 5–7"],
+    ["After gaps","gap JSON","FSD draft — steps 9–10"],
+    ["FSD approved","FSD","openspec/specs/** — step 11"],
+    ["Architecture","specs + FSD","ARCHITECTURE.md, openapi.yaml — steps 12–15"],
+    ["SEED planning","architecture + openapi + specs","SEED_PLAN.md — step 16"],
+    ["Before each build","SEED block + change folder + domain specs + openapi","—"],
+    ["API change needed","—","openapi.yaml first, then specs, then code"],
+    ["Behavior dispute","openspec/specs/**","FSD note if narrative wrong"],
+    ["Audit","all of the above","SDD_COMPLETION_AUDIT.md — step 19"],
+    ["Handover","everything","HANDOVER.md, zips — step 22"]
+  ];
+
+  const TOOL_ORDER = ["claude","design","cursor","manual"];
+  const TOOL_LABELS = { claude:"Claude", design:"Design Tool", cursor:"Cursor", manual:"Manual" };
+
+  // ---------- render: stat row ----------
+  document.getElementById("statRow").innerHTML = `
+    <div class="stat"><span class="n">${stages.length}</span><span class="l">Stages</span></div>
+    <div class="stat"><span class="n">3</span><span class="l">Tools</span></div>
+    <div class="stat"><span class="n">${TOOL_COUNTS.manual}</span><span class="l">Checkpoints</span></div>
+  `;
+
+  // ---------- render: flow line ----------
+  document.getElementById("flowLine").textContent =
+    "BRD → skills & plan → UI mockups → gaps, FSD & spec baseline → architecture & ADRs → SEED planning & build → audit, OWASP & handover.";
+
+  // ---------- render: hero chain ----------
+  const heroChain = document.getElementById("heroChain");
+  heroChain.innerHTML = stages.map((s,i) => `
+    <button class="node" data-idx="${i}" aria-label="Open stage ${s.code}: ${s.name}">
+      <span class="pip">${s.code}</span>
+      <span class="lbl">${s.name}<span class="range">${s.rangeLabel}</span></span>
+    </button>
+  `).join("");
+
+  // ---------- render: layers ----------
+  const layerGrid = document.getElementById("layerGrid");
+  layerGrid.innerHTML = layers.map((l,i) => `
+    <div class="layer-card" data-open="false" data-idx="${i}">
+      <div class="layer-top"><span class="layer-num">Layer ${l.n}</span><span class="layer-tag">${l.tag}</span></div>
+      <div class="layer-name">${l.name}</div>
+      <div class="layer-what">${l.what}</div>
+      <button class="layer-toggle" data-idx="${i}">Location, timing & reader <span class="chev">&#9662;</span></button>
+      <div class="layer-detail"><div class="layer-detail-inner"><dl>
+        <div><dt>Location</dt><dd><code>${l.location}</code></dd></div>
+        <div><dt>Created</dt><dd>${l.created}</dd></div>
+        <div><dt>Primary reader</dt><dd>${l.reader}</dd></div>
+      </dl></div></div>
+    </div>
+  `).join("");
+  layerGrid.querySelectorAll(".layer-toggle").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const card = btn.closest(".layer-card");
+      const open = card.getAttribute("data-open") === "true";
+      card.setAttribute("data-open", open ? "false" : "true");
+    });
+  });
+
+  // ---------- render: laws ----------
+  document.getElementById("lawsList").innerHTML = laws.map((l,i) => `
+    <div class="law">
+      <div class="law-num">${String(i+1).padStart(2,"0")}</div>
+      <div><div class="law-title">${l.title}</div><div class="law-body">${l.body}</div></div>
+    </div>
+  `).join("");
+
+  // ---------- render: method accordion + rail ----------
+  const accordion = document.getElementById("castAccordion");
+  accordion.innerHTML = stages.map((s,i) => `
+    <div class="phase" id="phase-${i}" data-idx="${i}">
+      <button class="phase-head" data-idx="${i}">
+        <span class="phase-code">${s.code}</span>
+        <span class="phase-title-wrap">
+          <span class="phase-name">${s.name}<span class="rng">${s.rangeLabel}</span></span>
+          <span class="phase-purpose">${s.purpose}</span>
+        </span>
+        <span class="phase-chev">+</span>
+      </button>
+      <div class="phase-body"><div class="phase-body-inner"><div class="phase-body-content">
+        <div class="step-list">
+          ${s.steps.map(st => `
+            <div class="step-row">
+              <span class="step-num">${String(st.n).padStart(2,"0")}</span>
+              <span class="step-text">${st.text}</span>
+              <span class="step-tool ${st.tool}">${st.label}</span>
+            </div>
+          `).join("")}
+        </div>
+      </div></div></div>
+    </div>
+  `).join("");
+
+  const rail = document.getElementById("castRail");
+  rail.innerHTML = stages.map((s,i) => `
+    <button class="rail-dot" data-idx="${i}" aria-label="Jump to stage ${s.code}"></button>
+    ${i < stages.length-1 ? '<div class="rail-seg"></div>' : ''}
+  `).join("");
+
+  // ---------- render: legend ----------
+  document.getElementById("legend").innerHTML = TOOL_ORDER.map(t => `
+    <span class="step-tool ${t}">${TOOL_LABELS[t]} · ${TOOL_COUNTS[t]}</span>
+  `).join("");
+
+  function setActive(idx){
+    document.querySelectorAll(".node").forEach(n => n.classList.toggle("active", +n.dataset.idx === idx));
+    document.querySelectorAll(".rail-dot").forEach(d => d.classList.toggle("active", +d.dataset.idx === idx));
+  }
+
+  function openPhase(idx, scroll){
+    document.querySelectorAll(".phase").forEach(ph => {
+      ph.classList.toggle("open", +ph.dataset.idx === idx);
+      ph.querySelector(".phase-chev").textContent = (+ph.dataset.idx === idx) ? "\u2715" : "+";
+    });
+    setActive(idx);
+    if(scroll){
+      const el = document.getElementById("phase-" + idx);
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  document.querySelectorAll(".node").forEach(n => n.addEventListener("click", () => openPhase(+n.dataset.idx, true)));
+  document.querySelectorAll(".rail-dot").forEach(d => d.addEventListener("click", () => openPhase(+d.dataset.idx, true)));
+  document.querySelectorAll(".phase-head").forEach(h => h.addEventListener("click", () => {
+    const idx = +h.dataset.idx;
+    const ph = document.getElementById("phase-" + idx);
+    const willOpen = !ph.classList.contains("open");
+    openPhase(willOpen ? idx : -1, false);
+  }));
+
+  openPhase(0, false);
+
+  // observe scroll to sync active dot while reading
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        setActive(+e.target.dataset.idx);
+      }
+    });
+  }, { rootMargin: "-40% 0px -50% 0px", threshold: 0 });
+  document.querySelectorAll(".phase").forEach(ph => io.observe(ph));
+
+  // ---------- render: SEED anatomy ----------
+  document.getElementById("fileTree").innerHTML = files.map(f => `
+    <div class="file-row"><span class="file-name">${f.name}</span><span class="file-desc">${f.desc}</span></div>
+  `).join("");
+
+  document.getElementById("lifecycle").innerHTML = lifecycle.map((s,i) => `
+    <span class="lc-step"><b>${i+1}</b> ${s}</span>
+  `).join("");
+
+  document.getElementById("fieldList").innerHTML = fields.map(f => `
+    <div class="field-row"><span class="field-name">${f[0]}</span><span class="field-desc">${f[1]}</span></div>
+  `).join("");
+
+  // ---------- render: reference table ----------
+  document.getElementById("refTableBody").innerHTML = refRows.map(r => `
+    <tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>
+  `).join("");
+
+  // ---------- tabs ----------
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById(btn.dataset.tab).classList.add("active");
+    });
+  });
+
+  // ---------- project structure tree ----------
+  document.getElementById("structureTree").innerHTML = `
+    <div>&lt;projectDir&gt;/</div>
+    <div class="indent">
+      <div class="leaf file">BRD_&lt;Project&gt;.md</div>
+      <div class="leaf">feedback-mockup/ <span class="comment"># UI reference — steps 5–7</span></div>
+      <details><summary>Discovery and Design/</summary><div class="indent">
+        <div class="leaf file">gap-questionnaire.json</div>
+        <div class="leaf file">UI_REFERENCE.md</div>
+        <div class="leaf file">SCAFFOLD_PLAN.md</div>
+        <div class="leaf file">ADR-0017-EXCEPTION-*.md</div>
+      </div></details>
+      <details open><summary>Docs/</summary><div class="indent">
+        <div class="leaf file">FSD_*.md <span class="comment"># Layer 1 — narrative</span></div>
+        <div class="leaf file">openapi.yaml <span class="comment"># Layer 3 — HTTP contract</span></div>
+        <div class="leaf file">ARCHITECTURE.md</div>
+        <div class="leaf file">SEED_PLAN.md</div>
+        <div class="leaf file">TRACEABILITY_MATRIX.md</div>
+        <div class="leaf file">SDD_COMPLETION_AUDIT.md</div>
+        <div class="leaf file">SEED_INTENT_REVIEW.md</div>
+        <div class="leaf file">OWASP_CLOSEOUT.md</div>
+        <div class="leaf file">HANDOVER.md</div>
+        <div class="leaf">scaffold-pack/</div>
+      </div></details>
+      <details open><summary>openspec/</summary><div class="indent">
+        <div class="leaf file">config.yaml</div>
+        <div class="leaf file">specs/&lt;domain&gt;/spec.md <span class="comment"># Layer 2 — behavior source of truth</span></div>
+        <details><summary>changes/</summary><div class="indent">
+          <div class="leaf">&lt;program-id&gt;/ <span class="comment"># architecture-phase package</span></div>
+          <div class="leaf">seed-XX-&lt;name&gt;/ <span class="comment"># one folder per SEED unit</span></div>
+        </div></details>
+      </div></details>
+      <div class="leaf">codebase/ <span class="comment"># implementation</span></div>
+      <div class="leaf">dist/*.zip <span class="comment"># self-contained handover packs</span></div>
+    </div>
+  `;
+})();
+</script>
+</body>
+</html>
